@@ -1,4 +1,4 @@
-package org.example.personal_finance_management_system;
+package com.rayyou.personal_finance_management_system;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
