@@ -1,13 +1,14 @@
 package com.rayyou.personal_finance_management_system.entity;
 
 import jakarta.persistence.*;
-import org.apache.naming.EjbRef;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
 
 @Entity
-@Table(name="users" , schema = "pfms_schemas")
+@Table(name = "users", schema = "pfms_schemas")
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -15,23 +16,31 @@ public class User {
 
     private String username;
 
+    @Column()
     private String password;
 
+    @Email
+    @NotBlank
+    @Column(nullable = false, unique = true)
     private String email;
 
     private Boolean isEmailVerified = false;
 
     private String emailVerificationToken;
 
-    private LocalDateTime tokenExprireAt;
+    private LocalDateTime tokenExpireAt;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
-    private LocalDateTime updateAt;
+    private LocalDateTime updatedAt;
 
-    public User(){}
+    @Column(name = "is_active")
+    private Boolean isActive;
+
+    public User() {
+    }
 
     public User(String email, String password) {
         this.email = email;
@@ -42,7 +51,7 @@ public class User {
         return userId;
     }
 
-    public void setUserId(Integer userId) {
+    private void setUserId(Integer userId) {
         this.userId = userId;
     }
 
@@ -74,7 +83,7 @@ public class User {
         return isEmailVerified;
     }
 
-    public void setEmailVerified(Boolean emailVerified) {
+    private void setEmailVerified(Boolean emailVerified) {
         isEmailVerified = emailVerified;
     }
 
@@ -82,16 +91,16 @@ public class User {
         return emailVerificationToken;
     }
 
-    public void setEmailVerificationToken(String emailVerificationToken) {
+    private void setEmailVerificationToken(String emailVerificationToken) {
         this.emailVerificationToken = emailVerificationToken;
     }
 
-    public LocalDateTime getTokenExprireAt() {
-        return tokenExprireAt;
+    public LocalDateTime getTokenExpireAt() {
+        return tokenExpireAt;
     }
 
-    public void setTokenExprireAt(LocalDateTime tokenExprireAt) {
-        this.tokenExprireAt = tokenExprireAt;
+    public void setTokenExpireAt(LocalDateTime tokenExprireAt) {
+        this.tokenExpireAt = tokenExprireAt;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -102,55 +111,63 @@ public class User {
         this.createdAt = createdAt;
     }
 
-    public LocalDateTime getUpdateAt() {
-        return updateAt;
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
     }
 
-    private void setUpdateAt(LocalDateTime updateAt) {
-        this.updateAt = updateAt;
+    private void setUpdatedAt(LocalDateTime updateAt) {
+        this.updatedAt = updateAt;
+    }
+
+    public Boolean getActive() {
+        return isActive;
+    }
+
+    private void setActive(Boolean active) {
+        isActive = active;
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        return Objects.hash(userId, username, email);
     }
 
     @Override
     public boolean equals(Object o) {
-        if(this == o){
+        if (this == o) {
             return true;
         }
 
-        if(!(this instanceof User)){
+        if (!(o instanceof User)) {
             return false;
         }
 
-        User user  = (User) o;
-        return Objects.equals(this.userId,user.userId)
-                && Objects.equals(this.username,user.username)
-                && Objects.equals(this.email,user.email);
+        User user = (User) o;
+        return Objects.equals(this.userId, user.userId)
+                && Objects.equals(this.username, user.username)
+                && Objects.equals(this.email, user.email);
     }
 
+    //    不包含用戶私密資料，如password
     @Override
     public String toString() {
         return "User{" +
                 "userId=" + userId +
                 ", username='" + username + '\'' +
-                ", password='" + password + '\'' +
                 ", email='" + email + '\'' +
                 ", createdAt=" + createdAt +
-                ", updateAt=" + updateAt +
+                ", updateAt=" + updatedAt +
                 '}';
     }
 
     @PrePersist
-    protected void onCreate(){
+    protected void onCreate() {
         createdAt = LocalDateTime.now();
-        updateAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
-    protected void onUpdate(){
-        updateAt = LocalDateTime.now();
-        }
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
 }

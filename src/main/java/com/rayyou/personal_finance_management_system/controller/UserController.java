@@ -5,9 +5,11 @@ import com.rayyou.personal_finance_management_system.dto.UserRegisterDTO;
 import com.rayyou.personal_finance_management_system.entity.User;
 import com.rayyou.personal_finance_management_system.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,11 +26,25 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> register(@RequestParam String email, @RequestParam String password) {
-        Integer userId = userService.register(email, password);
-        User user = new User(email, password);
-        return ResponseEntity.status(HttpStatus.OK).body(user);
+    public ResponseEntity<Map<String, Object>> register(@RequestBody UserRegisterDTO dto) {
+        Map<String, Object> response = new HashMap<>();
+        try{
+            Integer userId = userService.register(dto.getEmail(),dto.getPassword());
+            response.put("success",true);
+            response.put("userId",userId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        } catch (IllegalArgumentException e) {
+            response.put("success",false);
+            response.put("error",e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } catch (Exception e){
+            response.put("success",false);
+            response.put("error","Internal server error");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
+
     }
+
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody UserLoginDTO dto) {
@@ -60,6 +76,8 @@ public class UserController {
         if (testClass1 == null){
             return ResponseEntity.notFound().build();
         }
+        HttpHeaders headers = new HttpHeaders();
+        headers.add("Location","/users/"+ testClass.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(testClass1);
     }
