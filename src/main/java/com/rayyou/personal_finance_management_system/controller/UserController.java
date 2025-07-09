@@ -13,9 +13,10 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
-@RequestMapping("/userapi")
+@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
@@ -28,18 +29,18 @@ public class UserController {
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody UserRegisterDTO dto) {
         Map<String, Object> response = new HashMap<>();
-        try{
-            Integer userId = userService.register(dto.getEmail(),dto.getPassword());
-            response.put("success",true);
-            response.put("userId",userId);
+        try {
+            Integer userId = userService.register(dto.getUsername(), dto.getEmail(), dto.getPassword());
+            response.put("success", true);
+            response.put("userId", userId);
             return ResponseEntity.status(HttpStatus.CREATED).body(response);
         } catch (IllegalArgumentException e) {
-            response.put("success",false);
-            response.put("error",e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        } catch (Exception e){
-            response.put("success",false);
-            response.put("error","Internal server error");
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", "Internal server error");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
 
@@ -48,67 +49,14 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody UserLoginDTO dto) {
-        boolean success = userService.login(dto.getEmail(),dto.getPassword());
+        Boolean success = userService.login(dto.getEmail(), dto.getPassword());
         Map<String, Object> response = new HashMap<>();
-        response.put("success",success);
-        return ResponseEntity.ok(response);
-    }
-
-
-
-//    ================================test================================
-    @GetMapping("/class/{id}")
-    public ResponseEntity<TestClass> getClass(@PathVariable Integer id) {
-        TestClass testClass = new TestClass("Hello, My id is 1",1);
-        if (testClass.getId() != id){
-             return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        response.put("success", success);
+        if (success) {
+            return ResponseEntity.ok(response);
+        } else {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
-
-        return ResponseEntity.ok(testClass);
     }
-
-    @PostMapping("/testcreate")
-    public ResponseEntity<TestClass> createTestClass(@RequestBody TestClass testClass){
-        TestClass testClass1 = new TestClass();
-        testClass1.setId(testClass.getId());
-        testClass1.setMessage(testClass.getMessage());
-
-        if (testClass1 == null){
-            return ResponseEntity.notFound().build();
-        }
-        HttpHeaders headers = new HttpHeaders();
-        headers.add("Location","/users/"+ testClass.getId());
-
-        return ResponseEntity.status(HttpStatus.CREATED).body(testClass1);
-    }
-
-   private static class TestClass{
-        String message;
-        Integer id;
-
-        public TestClass(){}
-
-        TestClass(String message, Integer num){
-            this.message = message;
-            this.id = num;
-        }
-
-       public String getMessage() {
-           return message;
-       }
-
-       public void setMessage(String message) {
-           this.message = message;
-       }
-
-       public Integer getId() {
-           return id;
-       }
-
-       public void setId(Integer id) {
-           this.id = id;
-       }
-   }
-
 
 }

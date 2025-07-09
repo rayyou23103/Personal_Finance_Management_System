@@ -28,7 +28,9 @@ public class User {
 
     private String emailVerificationToken;
 
-    private LocalDateTime tokenExpireAt;
+    @Column(name = "token_expired_at")
+    private LocalDateTime tokenExpiredAt;
+
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -42,7 +44,8 @@ public class User {
     public User() {
     }
 
-    public User(String email, String password) {
+    public User(String username,String email, String password) {
+        this.username = username;
         this.email = email;
         this.password = password;
     }
@@ -96,11 +99,11 @@ public class User {
     }
 
     public LocalDateTime getTokenExpireAt() {
-        return tokenExpireAt;
+        return tokenExpiredAt;
     }
 
     public void setTokenExpireAt(LocalDateTime tokenExprireAt) {
-        this.tokenExpireAt = tokenExprireAt;
+        this.tokenExpiredAt = tokenExprireAt;
     }
 
     public LocalDateTime getCreatedAt() {

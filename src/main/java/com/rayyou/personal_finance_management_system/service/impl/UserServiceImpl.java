@@ -23,20 +23,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public Integer register(String username,String email, String rawPassword) {
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("Email 重複註冊");
+        }
+
+        String hashedPassword = passwordEncoder.encode(rawPassword);
+        User user = new User(username ,email, hashedPassword);
+        user = userRepository.save(user);
+        return user.getUserId();
+    }
+
+    @Override
     public boolean login(String email, String rawPassword) {
         Optional<User> userOpt = userRepository.findByEmail(email);
         return userOpt.map(user -> passwordEncoder.matches(rawPassword, user.getPassword())).orElse(false);
     }
 
-    @Override
-    public Integer register(String email, String rawPassword) {
-        if (userRepository.existsByEmail(email)) {
-            return null;
-        }
 
-        String hashedPassword = passwordEncoder.encode(rawPassword);
-        User user = new User(email, hashedPassword);
-        user = userRepository.save(user);
-        return user.getUserId();
-    }
 }
