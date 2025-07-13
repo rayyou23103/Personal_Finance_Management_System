@@ -17,14 +17,14 @@ public class EmailController {
     private final EmailService emailService;
 
     @Autowired
-    public EmailController(EmailService emailService){
-        this.emailService =emailService;
+    public EmailController(EmailService emailService) {
+        this.emailService = emailService;
     }
 
     @PostMapping("/send-verification")
-    public ResponseEntity<String> sendVerificationEmail(@RequestParam String email){
+    public ResponseEntity<String> sendVerificationEmail(@RequestParam String email) {
         emailService.sendVerificationEmail(email);
-        return ResponseEntity.status(HttpStatus.OK).build();
+        return ResponseEntity.status(HttpStatus.OK).body("驗證信已寄到" + email);
     }
 
 }
