@@ -44,7 +44,7 @@ public class User {
     public User() {
     }
 
-    public User(String username,String email, String password) {
+    public User(String username, String email, String password) {
         this.username = username;
         this.email = email;
         this.password = password;
@@ -98,12 +98,12 @@ public class User {
         this.emailVerificationToken = emailVerificationToken;
     }
 
-    public LocalDateTime getTokenExpireAt() {
+    public LocalDateTime getTokenExpiredAt() {
         return tokenExpiredAt;
     }
 
-    public void setTokenExpireAt(LocalDateTime tokenExprireAt) {
-        this.tokenExpiredAt = tokenExprireAt;
+    private void setTokenExpiredAt(LocalDateTime tokenExpriredAt) {
+        this.tokenExpiredAt = tokenExpriredAt;
     }
 
     public LocalDateTime getCreatedAt() {
@@ -172,5 +172,10 @@ public class User {
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+    }
+
+    public void applyVerificationToken(String token, LocalDateTime tokenExpiredAt) {
+        this.emailVerificationToken = token;
+        this.tokenExpiredAt = tokenExpiredAt;
     }
 }

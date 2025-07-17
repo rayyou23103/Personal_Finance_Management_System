@@ -2,18 +2,14 @@ package com.rayyou.personal_finance_management_system.controller;
 
 import com.rayyou.personal_finance_management_system.dto.UserLoginDTO;
 import com.rayyou.personal_finance_management_system.dto.UserRegisterDTO;
-import com.rayyou.personal_finance_management_system.entity.User;
 import com.rayyou.personal_finance_management_system.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -57,6 +53,30 @@ public class UserController {
         } else {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(response);
         }
+    }
+
+    @GetMapping("/email/verify")
+    public ResponseEntity<Map<String, Object>> verifyEmail(@RequestParam String token) {
+        userService.verifyEmail(token);
+        return ResponseEntity.ok().build();
+    }
+
+    @GetMapping("/email/resend-verification")
+    public ResponseEntity<Map<String, Object>> resendVerification(@RequestBody String email) {
+        userService.resendVerification(email);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/password/reset-request")
+    public ResponseEntity<Map<String, Object>> resetRequest(@RequestBody String email) {
+        userService.resetRequest(email);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/password/reset-confirm")
+    public ResponseEntity<Map<String, Object>> resetConfirm(@RequestBody String token, @RequestBody String newPassword) {
+        userService.resetConfirm(token,newPassword);
+        return ResponseEntity.ok().build();
     }
 
 }
