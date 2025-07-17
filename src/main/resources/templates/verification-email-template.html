@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>驗證信</title>
+</head>
+<body>
+<img src="cid:verification_logo" alt="verification_logo">
+<h1>您好，<span th:text="${userName}">User！</span></h1>
+<p>請點擊以下連結驗證信箱：</p>
+<a th:href="@{'/verify-token/'+${token}}">驗證信箱</a>
+</body>
+</html>
