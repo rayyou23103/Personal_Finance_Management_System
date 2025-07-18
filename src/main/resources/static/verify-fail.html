@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>驗證失敗</title>
+</head>
+<body>
+<h1>驗證失敗</h1>
+<p>連結已失效或信箱無效。</p>
+<form action="/api/users/email/resend" method="post">
+    <input type="email" name="email" placeholder="請輸入信箱" required />
+    <button type="submit">重新寄送驗證信</button>
+</form>
+</body>
+</html>
