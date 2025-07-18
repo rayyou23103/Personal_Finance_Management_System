@@ -174,8 +174,16 @@ public class User {
         updatedAt = LocalDateTime.now();
     }
 
+
     public void applyVerificationToken(String token, LocalDateTime tokenExpiredAt) {
         this.emailVerificationToken = token;
         this.tokenExpiredAt = tokenExpiredAt;
+    }
+
+    // 驗證信箱成功，清除 token, tokenExpiredAt
+    public void verifyEmail() {
+        this.isEmailVerified = true;
+        this.emailVerificationToken = null;
+        this.tokenExpiredAt = null;
     }
 }
