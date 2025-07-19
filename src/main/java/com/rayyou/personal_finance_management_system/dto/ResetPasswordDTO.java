@@ -2,11 +2,9 @@ package com.rayyou.personal_finance_management_system.dto;
 
 import jakarta.validation.constraints.NotBlank;
 
-public class ResetPasswordConfirmDTO {
+public class ResetPasswordDTO {
     @NotBlank
-    String newPassword;
-
-    String token;
+    private String newPassword;
 
     public String getNewPassword() {
         return newPassword;
@@ -15,4 +13,6 @@ public class ResetPasswordConfirmDTO {
     public void setNewPassword(String newPassword) {
         this.newPassword = newPassword;
     }
+
+
 }

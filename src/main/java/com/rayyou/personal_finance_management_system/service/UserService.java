@@ -1,7 +1,7 @@
 package com.rayyou.personal_finance_management_system.service;
 
 import com.rayyou.personal_finance_management_system.dto.ResendVerificationRequestDTO;
-import com.rayyou.personal_finance_management_system.dto.ResetPasswordConfirmDTO;
+import com.rayyou.personal_finance_management_system.dto.ResetPasswordDTO;
 import com.rayyou.personal_finance_management_system.dto.ResetPasswordRequestDTO;
 
 public interface UserService {
@@ -15,7 +15,8 @@ public interface UserService {
 
     void resetRequest(ResetPasswordRequestDTO dto);
 
-    void resetConfirm(ResetPasswordConfirmDTO dto);
+    Boolean resetConfirm(String token);
 
+    void resetPassword(ResetPasswordDTO dto);
 
 }

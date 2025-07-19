@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -102,27 +103,42 @@ public class UserController {
         Map<String, Object> response = new HashMap<>();
         try {
             userService.resetRequest(dto);
-            response.put("success",true);
-            log.info("密碼重設認證信已發送到{}",dto.getEmail());
+            response.put("success", true);
+            log.info("密碼重設認證信已發送到{}", dto.getEmail());
             return ResponseEntity.ok(response);
-        }catch (IllegalArgumentException e){
-            response.put("success",false);
-            response.put("error",e.getMessage());
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
             log.warn("信箱尚未註冊:{}", dto.getEmail());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-        }catch (Exception e){
-            response.put("success",false);
-            response.put("error",e.getMessage());
-            log.error("密碼重設請求處理過程錯誤：{}",dto.getEmail(),e);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            log.error("密碼重設請求處理過程錯誤：{}", dto.getEmail(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 
         }
     }
 
-    @PostMapping("/password/reset-confirm")
-    public ResponseEntity<Map<String, Object>> resetConfirm(@RequestBody ResetPasswordConfirmDTO dto) {
-        userService.resetConfirm(dto);
-        return ResponseEntity.ok().build();
+    @GetMapping("/password/reset-confirm")
+    public void resetConfirm(@RequestParam String token, HttpServletResponse response) throws IOException {
+        try {
+            userService.resetConfirm(token);
+            response.sendRedirect("/password-reset.html?token=" + token);
+        } catch (IllegalArgumentException e) {
+            response.sendRedirect("/password-reset.html?error=true");
+        }
+
     }
 
+    @PostMapping("/password/reset")
+    public ResponseEntity<Map<String, Object>> resetPassword(ResetPasswordDTO dto) {
+        try {
+            userService.resetPassword(dto);
+            log.info("密碼已成功重設");
+        } catch (IllegalArgumentException e) {
+            log.warn("");
+        }
+        return ResponseEntity.ok().build();
+    }
 }
