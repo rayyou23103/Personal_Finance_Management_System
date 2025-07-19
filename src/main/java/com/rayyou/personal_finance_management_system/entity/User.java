@@ -16,7 +16,6 @@ public class User {
 
     private String username;
 
-    @Column()
     private String password;
 
     @Email
@@ -26,11 +25,19 @@ public class User {
 
     private Boolean isEmailVerified = false;
 
+    // 信箱認證相關欄位
+    @Column(name = "email_verification_token")
     private String emailVerificationToken;
 
-    @Column(name = "token_expired_at")
-    private LocalDateTime tokenExpiredAt;
+    @Column(name = "email_token_expired_at")
+    private LocalDateTime emailTokenExpiredAt;
 
+    //密碼重設相關欄位
+    @Column(name = "password_reset_token")
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_token_expired_at")
+    private LocalDateTime passwordResetTokenExpiredAt;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -54,80 +61,60 @@ public class User {
         return userId;
     }
 
-    private void setUserId(Integer userId) {
-        this.userId = userId;
-    }
-
     public String getUsername() {
         return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public String getPassword() {
         return password;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public String getEmail() {
         return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
     public Boolean getEmailVerified() {
         return isEmailVerified;
     }
 
-    private void setEmailVerified(Boolean emailVerified) {
-        isEmailVerified = emailVerified;
-    }
-
     public String getEmailVerificationToken() {
         return emailVerificationToken;
     }
 
-    private void setEmailVerificationToken(String emailVerificationToken) {
-        this.emailVerificationToken = emailVerificationToken;
+    public LocalDateTime getEmailTokenExpiredAt() {
+        return emailTokenExpiredAt;
     }
 
-    public LocalDateTime getTokenExpiredAt() {
-        return tokenExpiredAt;
+    public String getPasswordResetToken() {
+        return passwordResetToken;
     }
 
-    private void setTokenExpiredAt(LocalDateTime tokenExpriredAt) {
-        this.tokenExpiredAt = tokenExpriredAt;
+    public LocalDateTime getPasswordResetTokenExpiredAt() {
+        return passwordResetTokenExpiredAt;
     }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    private void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
     public LocalDateTime getUpdatedAt() {
         return updatedAt;
-    }
-
-    private void setUpdatedAt(LocalDateTime updateAt) {
-        this.updatedAt = updateAt;
     }
 
     public Boolean getActive() {
         return isActive;
     }
 
-    private void setActive(Boolean active) {
-        isActive = active;
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     @Override
@@ -175,15 +162,34 @@ public class User {
     }
 
 
+    // 信箱驗證相關方法
     public void applyVerificationToken(String token, LocalDateTime tokenExpiredAt) {
         this.emailVerificationToken = token;
-        this.tokenExpiredAt = tokenExpiredAt;
+        this.emailTokenExpiredAt = tokenExpiredAt;
     }
 
     // 驗證信箱成功，清除 token, tokenExpiredAt
-    public void verifyEmail() {
+    public void clearEmailVerificationToken() {
         this.isEmailVerified = true;
         this.emailVerificationToken = null;
-        this.tokenExpiredAt = null;
+        this.emailTokenExpiredAt = null;
+    }
+
+    // 密碼重設相關方法
+    public void applyPasswordResetToken(String passwordResetToken, LocalDateTime passwordResetTokenExpiredAt) {
+        this.passwordResetToken = passwordResetToken;
+        this.passwordResetTokenExpiredAt = passwordResetTokenExpiredAt;
+    }
+
+    // 重設密碼成功，清除 token, tokenExpiredAt
+    public void clearPasswordResetToken() {
+        this.passwordResetToken = null;
+        this.passwordResetTokenExpiredAt = null;
+    }
+
+    public boolean isPasswordResetTokenValid() {
+        return passwordResetToken != null &&
+                passwordResetTokenExpiredAt != null &&
+                passwordResetTokenExpiredAt.isAfter(LocalDateTime.now());
     }
 }

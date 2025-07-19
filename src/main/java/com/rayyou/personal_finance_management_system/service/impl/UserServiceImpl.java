@@ -75,14 +75,14 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = userOpt.get();
-        LocalDateTime tokenExpiredAt = user.getTokenExpiredAt();
+        LocalDateTime tokenExpiredAt = user.getEmailTokenExpiredAt();
 
         if (tokenExpiredAt == null || tokenExpiredAt.isBefore(LocalDateTime.now())) {
             log.warn("驗證失敗：token 過期，使用者{}" + user.getEmail());
             throw new IllegalArgumentException("Token 過期");
         }
 
-        user.verifyEmail();
+        user.clearEmailVerificationToken();
         userRepository.save(user);
         log.info("驗證成功：{}", user.getEmail());
 
@@ -99,7 +99,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = userOpt.get();
-        LocalDateTime tokenExpiredAt = user.getTokenExpiredAt();
+        LocalDateTime tokenExpiredAt = user.getEmailTokenExpiredAt();
 
         if (tokenExpiredAt != null || tokenExpiredAt.isAfter(LocalDateTime.now())) {
             log.warn("驗證信尚未過期，不重複發送:{}", email);
@@ -139,7 +139,7 @@ public class UserServiceImpl implements UserService {
         }
 
         User user = userOpt.get();
-        LocalDateTime tokenExpiredAt = user.getTokenExpiredAt();
+        LocalDateTime tokenExpiredAt = user.getEmailTokenExpiredAt();
 
         if (tokenExpiredAt == null || tokenExpiredAt.isBefore(LocalDateTime.now())) {
             log.warn("驗證失敗：token 過期，使用者{}" + user.getEmail());
@@ -199,9 +199,11 @@ public class UserServiceImpl implements UserService {
     private void sendPasswordResetEmail(User user) {
         String email = user.getEmail();
 
+        //
         String token = UUID.randomUUID().toString();
         user.applyVerificationToken(token, LocalDateTime.now().plusMinutes(5));
         userRepository.save(user);
+
         try {
             // Thymeleaf Context
             Context context = new Context();
