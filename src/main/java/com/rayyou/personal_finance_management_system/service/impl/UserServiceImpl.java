@@ -1,5 +1,8 @@
 package com.rayyou.personal_finance_management_system.service.impl;
 
+import com.rayyou.personal_finance_management_system.dto.ResendVerificationRequestDTO;
+import com.rayyou.personal_finance_management_system.dto.ResetPasswordConfirmDTO;
+import com.rayyou.personal_finance_management_system.dto.ResetPasswordRequestDTO;
 import com.rayyou.personal_finance_management_system.entity.User;
 import com.rayyou.personal_finance_management_system.repository.UserRepository;
 import com.rayyou.personal_finance_management_system.service.UserService;
@@ -46,11 +49,12 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("Email 重複註冊");
         }
 
+        // 加密
         String hashedPassword = passwordEncoder.encode(rawPassword);
         User user = new User(username, email, hashedPassword);
         user = userRepository.save(user);
 
-        sendVerificationEmail(email);
+        sendVerificationEmail(user);
 
         return user.getUserId();
     }
@@ -85,29 +89,54 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
-    public void resendVerification(String email) {
+    @Override
+    public void resendVerification(ResendVerificationRequestDTO dto) {
+        String email= dto.getEmail();
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()) {
+            log.warn("查無信箱:{}", email);
+            throw new IllegalArgumentException("該信箱尚未註冊");
+        }
+
+        User user= userOpt.get();
+        LocalDateTime tokenExpiredAt =  user.getTokenExpiredAt();
+
+        if(tokenExpiredAt != null || tokenExpiredAt.isAfter(LocalDateTime.now())){
+            log.warn("驗證信尚未過期，不重複發送:{}",email);
+            throw new IllegalArgumentException("驗證信尚未過期，請稍後再試");
+        }
+
+        if (user.getEmailVerified()){
+            log.warn("該 Email 已驗證:{}",user.getEmail());
+            throw new IllegalArgumentException("信箱已完成驗證");
+        }
+
+        sendVerificationEmail(user);
+
     }
 
     @Override
-    public void resetRequest(String email) {
+    public void resetRequest(ResetPasswordRequestDTO dto) {
+        String email = dto.getEmail();
+        Optional<User> userOpt = userRepository.findByEmail(email);
+        if (userOpt.isEmpty()){
+            log.warn("密碼重設請求失敗，信箱尚未註冊{}",email);
+            throw new IllegalArgumentException("該信箱尚未註冊");
+        }
 
+        User user= userOpt.get();
+        sendVerificationEmail(user);
+        log.info("認證信已寄出{}",email);
     }
 
     @Override
-    public void resetConfirm(String token, String newPassword) {
+    public void resetConfirm(ResetPasswordConfirmDTO dto) {
 
     }
 
     // 寄送信箱認證信
-    private void sendVerificationEmail(String email) {
-
-        //查找註冊信箱
-        Optional<User> userOpt = userRepository.findByEmail(email);
-        if (userOpt.isEmpty()) {
-            throw new IllegalArgumentException("信箱：" + email + "尚未註冊");
-        }
-
-        User user = userOpt.get();
+    private void sendVerificationEmail(User user) {
+        String email = user.getEmail();
 
         // 產生驗證 token, token 到期時間
         String token = UUID.randomUUID().toString();
@@ -139,7 +168,7 @@ public class UserServiceImpl implements UserService {
             helper.setText("html", true);
 
             mailSender.send(mimeMessage);
-            log.info("驗證信發送成功，Recipient:{}", user.getEmail());
+            log.info("認證信已發送到{}",email);
         } catch (MessagingException e) {
             throw new RuntimeException(e);
         }

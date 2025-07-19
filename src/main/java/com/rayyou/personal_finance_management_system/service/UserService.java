@@ -1,6 +1,8 @@
 package com.rayyou.personal_finance_management_system.service;
 
-import org.springframework.stereotype.Service;
+import com.rayyou.personal_finance_management_system.dto.ResendVerificationRequestDTO;
+import com.rayyou.personal_finance_management_system.dto.ResetPasswordConfirmDTO;
+import com.rayyou.personal_finance_management_system.dto.ResetPasswordRequestDTO;
 
 public interface UserService {
     Integer register(String username,   String email, String password);
@@ -9,11 +11,11 @@ public interface UserService {
 
     Boolean verifyEmail(String token);
 
-    void resendVerification(String email);
+    void resendVerification(ResendVerificationRequestDTO dto);
 
-    void resetRequest(String email);
+    void resetRequest(ResetPasswordRequestDTO dto);
 
-    void resetConfirm(String token, String newPassword);
+    void resetConfirm(ResetPasswordConfirmDTO dto);
 
 
 }

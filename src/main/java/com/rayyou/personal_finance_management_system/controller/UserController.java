@@ -1,9 +1,9 @@
 package com.rayyou.personal_finance_management_system.controller;
 
-import com.rayyou.personal_finance_management_system.dto.UserLoginDTO;
-import com.rayyou.personal_finance_management_system.dto.UserRegisterDTO;
+import com.rayyou.personal_finance_management_system.dto.*;
 import com.rayyou.personal_finance_management_system.service.UserService;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +28,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody UserRegisterDTO dto) {
+    public ResponseEntity<Map<String, Object>> register(@RequestBody @Valid UserRegisterDTO dto) {
         Map<String, Object> response = new HashMap<>();
         try {
             Integer userId = userService.register(dto.getUsername(), dto.getEmail(), dto.getPassword());
@@ -50,9 +50,8 @@ public class UserController {
 
     }
 
-
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody UserLoginDTO dto) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody @Valid UserLoginDTO dto) {
         Boolean success = userService.login(dto.getEmail(), dto.getPassword());
         Map<String, Object> response = new HashMap<>();
         response.put("success", success);
@@ -78,20 +77,51 @@ public class UserController {
     }
 
     @PostMapping("/email/resend-verification")
-    public ResponseEntity<Map<String, Object>> resendVerification(@RequestBody String email) {
-        userService.resendVerification(email);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Map<String, Object>> resendVerification(@RequestBody @Valid ResendVerificationRequestDTO dto) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            userService.resendVerification(dto);
+            response.put("success", true);
+            log.info("重新寄送驗證信成功：{}", dto);
+            return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            log.warn("重新寄送驗證信失敗：{}，原因：{}", dto.getEmail(), e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+            log.error("重新寄送驗證信過程中發生錯誤：{}", dto, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 
     @PostMapping("/password/reset-request")
-    public ResponseEntity<Map<String, Object>> resetRequest(@RequestBody String email) {
-        userService.resetRequest(email);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<Map<String, Object>> resetRequest(@RequestBody ResetPasswordRequestDTO dto) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            userService.resetRequest(dto);
+            response.put("success",true);
+            log.info("密碼重設認證信已發送到{}",dto.getEmail());
+            return ResponseEntity.ok(response);
+        }catch (IllegalArgumentException e){
+            response.put("success",false);
+            response.put("error",e.getMessage());
+            log.warn("信箱尚未註冊:{}", dto.getEmail());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }catch (Exception e){
+            response.put("success",false);
+            response.put("error",e.getMessage());
+            log.error("密碼重設請求處理過程錯誤：{}",dto.getEmail(),e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+
+        }
     }
 
     @PostMapping("/password/reset-confirm")
-    public ResponseEntity<Map<String, Object>> resetConfirm(@RequestBody String token, @RequestBody String newPassword) {
-        userService.resetConfirm(token, newPassword);
+    public ResponseEntity<Map<String, Object>> resetConfirm(@RequestBody ResetPasswordConfirmDTO dto) {
+        userService.resetConfirm(dto);
         return ResponseEntity.ok().build();
     }
 
