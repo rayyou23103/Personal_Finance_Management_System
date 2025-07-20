@@ -1,13 +1,11 @@
 package com.rayyou.personal_finance_management_system.service;
 
-import com.rayyou.personal_finance_management_system.dto.ResendVerificationRequestDTO;
-import com.rayyou.personal_finance_management_system.dto.ResetPasswordDTO;
-import com.rayyou.personal_finance_management_system.dto.ResetPasswordRequestDTO;
+import com.rayyou.personal_finance_management_system.dto.*;
 
 public interface UserService {
-    Integer register(String username,   String email, String password);
+    Integer register(UserRegisterDTO dto);
 
-    boolean login(String email, String password);
+    boolean login(UserLoginDTO dto);
 
     Boolean verifyEmail(String token);
 
@@ -15,7 +13,7 @@ public interface UserService {
 
     void resetRequest(ResetPasswordRequestDTO dto);
 
-    Boolean resetConfirm(String token);
+    boolean resetConfirm(String token);
 
     void resetPassword(ResetPasswordDTO dto);
 

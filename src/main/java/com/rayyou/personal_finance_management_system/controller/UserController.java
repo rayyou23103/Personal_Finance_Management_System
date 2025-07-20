@@ -32,7 +32,7 @@ public class UserController {
     public ResponseEntity<Map<String, Object>> register(@RequestBody @Valid UserRegisterDTO dto) {
         Map<String, Object> response = new HashMap<>();
         try {
-            Integer userId = userService.register(dto.getUsername(), dto.getEmail(), dto.getPassword());
+            Integer userId = userService.register(dto);
             response.put("success", true);
             response.put("userId", userId);
             log.info("新用戶註冊：{}", dto.getEmail());
@@ -53,7 +53,7 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody @Valid UserLoginDTO dto) {
-        Boolean success = userService.login(dto.getEmail(), dto.getPassword());
+        Boolean success = userService.login(dto);
         Map<String, Object> response = new HashMap<>();
         response.put("success", success);
         if (success) {
@@ -93,13 +93,13 @@ public class UserController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("error", e.getMessage());
-            log.error("重新寄送驗證信過程中發生錯誤：{}", dto, e);
+            log.error("重新寄送驗證信過程中發生錯誤：{}", dto.getEmail(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 
     @PostMapping("/password/reset-request")
-    public ResponseEntity<Map<String, Object>> resetRequest(@RequestBody ResetPasswordRequestDTO dto) {
+    public ResponseEntity<Map<String, Object>> resetRequest(@RequestBody @Valid ResetPasswordRequestDTO dto) {
         Map<String, Object> response = new HashMap<>();
         try {
             userService.resetRequest(dto);
@@ -114,7 +114,7 @@ public class UserController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("error", e.getMessage());
-            log.error("密碼重設請求處理過程錯誤：{}", dto.getEmail(), e);
+            log.error("密碼重設請求處理錯誤：{}", dto.getEmail(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
 
         }
@@ -123,7 +123,11 @@ public class UserController {
     @GetMapping("/password/reset-confirm")
     public void resetConfirm(@RequestParam String token, HttpServletResponse response) throws IOException {
         try {
-            userService.resetConfirm(token);
+            boolean result = userService.resetConfirm(token);
+            if (!userService.resetConfirm(token)) {
+                response.sendRedirect("/password-reset.html?error=true");
+                return;
+            }
             response.sendRedirect("/password-reset.html?token=" + token);
         } catch (IllegalArgumentException e) {
             response.sendRedirect("/password-reset.html?error=true");
@@ -132,13 +136,17 @@ public class UserController {
     }
 
     @PostMapping("/password/reset")
-    public ResponseEntity<Map<String, Object>> resetPassword(ResetPasswordDTO dto) {
+    public ResponseEntity<Map<String, Object>> resetPassword(@RequestBody ResetPasswordDTO dto) {
+        Map<String, Object> response = new HashMap<>();
         try {
             userService.resetPassword(dto);
-            log.info("密碼已成功重設");
+            response.put("success", true);
+            log.info("密碼已成功重設:{}",dto.getToken());
+            return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
-            log.warn("");
+            response.put("success", false);
+            log.warn("密碼重設失敗:{}", e);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
-        return ResponseEntity.ok().build();
     }
 }

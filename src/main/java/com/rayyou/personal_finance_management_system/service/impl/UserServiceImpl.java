@@ -1,13 +1,12 @@
 package com.rayyou.personal_finance_management_system.service.impl;
 
-import com.rayyou.personal_finance_management_system.dto.ResendVerificationRequestDTO;
-import com.rayyou.personal_finance_management_system.dto.ResetPasswordDTO;
-import com.rayyou.personal_finance_management_system.dto.ResetPasswordRequestDTO;
+import com.rayyou.personal_finance_management_system.dto.*;
 import com.rayyou.personal_finance_management_system.entity.User;
 import com.rayyou.personal_finance_management_system.repository.UserRepository;
 import com.rayyou.personal_finance_management_system.service.UserService;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +27,8 @@ import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
+
+
     private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
@@ -44,7 +45,11 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Integer register(String username, String email, String rawPassword) {
+    public Integer register(UserRegisterDTO dto) {
+        String email = dto.getEmail();
+        String rawPassword = dto.getPassword();
+        String username = dto.getUsername();
+
         if (userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("Email 重複註冊");
         }
@@ -60,9 +65,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public boolean login(String email, String rawPassword) {
-        Optional<User> userOpt = userRepository.findByEmail(email);
-        return userOpt.map(user -> passwordEncoder.matches(rawPassword, user.getPassword())).orElse(false);
+    public boolean login(UserLoginDTO dto) {
+        Optional<User> userOpt = userRepository.findByEmail(dto.getEmail());
+        if (userOpt.isEmpty()) {
+            log.warn("登入失敗，信箱尚未註冊:{}", dto.getEmail());
+            throw new IllegalArgumentException("此信箱尚未註冊");
+        }
+        return userOpt.map(user -> passwordEncoder.matches(dto.getPassword(), user.getPassword())).orElse(false);
     }
 
     @Override
@@ -130,7 +139,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public Boolean resetConfirm(String token) {
+    public boolean resetConfirm(String token) {
         Optional<User> userOpt = userRepository.findByEmailVerificationToken(token);
 
         if (userOpt.isEmpty()) {
@@ -150,9 +159,21 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void resetPassword(ResetPasswordDTO dto) {
-        String hashedPassword= passwordEncoder.encode(dto.getNewPassword());
-        userRepository.updateByPassword(hashedPassword);
+        User user = userRepository.findByPasswordResetToken(dto.getToken()).orElseThrow(() -> new IllegalArgumentException("無效的重設密碼連結"));
+        LocalDateTime passwordResetTokenExpiredAt = user.getPasswordResetTokenExpiredAt();
+        if ( passwordResetTokenExpiredAt== null || passwordResetTokenExpiredAt.isAfter(LocalDateTime.now())){
+            throw new IllegalArgumentException("Token 已過期，請重新申請重設密碼");
+        }
+
+        String rawPassword = dto.getNewPassword();
+        String hashedPassword = passwordEncoder.encode(rawPassword);
+        user.setPassword(hashedPassword);
+        user.clearPasswordResetToken();
+
+        userRepository.save(user);
+        log.info("用戶重設密碼成功{}",user.getEmail());
     }
 
     // 寄送信箱認證信

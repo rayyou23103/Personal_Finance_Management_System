@@ -8,6 +8,14 @@ public class ResetPasswordRequestDTO {
     @Email
     String email;
 
+    public ResetPasswordRequestDTO() {
+
+    }
+
+    public ResetPasswordRequestDTO(String email) {
+        this.email = email;
+    }
+
     public String getEmail() {
         return email;
     }
@@ -15,4 +23,5 @@ public class ResetPasswordRequestDTO {
     public void setEmail(String email) {
         this.email = email;
     }
+
 }

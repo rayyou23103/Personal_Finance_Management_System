@@ -18,13 +18,8 @@ public interface UserRepository extends JpaRepository<User,Integer> {
 
     Optional<User> findByEmailVerificationToken(String token);
 
-    Boolean existsByEmail(String email);
+    Optional<User> findByPasswordResetToken(String token);
 
-    @Modifying
-    @Query(
-            value = "update USER set password = :password where email = :email",
-            nativeQuery = true
-    )
-    void updateByPassword(String HashPssword);
+    Boolean existsByEmail(String email);
 
 }
