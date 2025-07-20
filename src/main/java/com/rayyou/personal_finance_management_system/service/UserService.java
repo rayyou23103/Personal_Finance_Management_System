@@ -1,19 +1,20 @@
 package com.rayyou.personal_finance_management_system.service;
 
-import org.springframework.stereotype.Service;
+import com.rayyou.personal_finance_management_system.dto.*;
 
 public interface UserService {
-    Integer register(String username,   String email, String password);
+    Integer register(UserRegisterDTO dto);
 
-    boolean login(String email, String password);
+    boolean login(UserLoginDTO dto);
 
     Boolean verifyEmail(String token);
 
-    void resendVerification(String email);
+    void resendVerification(ResendVerificationRequestDTO dto);
 
-    void resetRequest(String email);
+    void resetRequest(ResetPasswordRequestDTO dto);
 
-    void resetConfirm(String token, String newPassword);
+    boolean resetConfirm(String token);
 
+    void resetPassword(ResetPasswordDTO dto);
 
 }
