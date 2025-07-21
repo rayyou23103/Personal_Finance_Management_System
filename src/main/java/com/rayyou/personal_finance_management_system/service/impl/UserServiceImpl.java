@@ -185,29 +185,37 @@ public class UserServiceImpl implements UserService {
         user.applyVerificationToken(token, LocalDateTime.now().plusMinutes(5));
         userRepository.save(user);
 
+        // 絕對連結
+        String verificationLink = "http://localhost:8080/email/verify?token=" + token;
+
+
         // 寄送信件
         try {
             // Thymeleaf Context
             Context context = new Context();
-            Map<String, Object> map = new HashMap<>();
-            map.put("userName", user.getUsername());
-            map.put("token", token);
-            context.setVariables(map);
+            Map<String, Object> variablesMap = new HashMap<>();
+            variablesMap.put("userName", user.getUsername());
+            variablesMap.put("verificationLink", verificationLink);
+            context.setVariables(variablesMap);
 
-            templateEngine.process("verification-email-template", context);
+            String html=templateEngine.process("verification-email-template", context);
 
             MimeMessage mimeMessage = mailSender.createMimeMessage();
-            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+            MimeMessageHelper helper = new MimeMessageHelper(mimeMessage,true);
 
             // MimeMessage資訊設定
-            helper.setFrom("⟪信箱認證⟫會員系統");
+            helper.setFrom("會員系統 <k9102188@gamil.com>");
             helper.setTo(user.getEmail());
             helper.setSubject("信箱驗證");
 
-            ClassPathResource logo = new ClassPathResource("/static/images/verified.png");
+            ClassPathResource logo = new ClassPathResource("templates/images/verification_logo.png");
+            if (!logo.exists()) {
+                log.error("圖片檔案不存在: {}", logo.getPath());
+                throw new RuntimeException("無法載入內嵌圖片");
+            }
             helper.addInline("verification_logo", logo);
 
-            helper.setText("html", true);
+            helper.setText(html, true);
 
             mailSender.send(mimeMessage);
             log.info("認證信已發送到{}", email);
@@ -220,18 +228,22 @@ public class UserServiceImpl implements UserService {
     private void sendPasswordResetEmail(User user) {
         String email = user.getEmail();
 
-        //
+        // 產生驗證 token, token 到期時間
         String token = UUID.randomUUID().toString();
         user.applyVerificationToken(token, LocalDateTime.now().plusMinutes(5));
         userRepository.save(user);
+
+        // 絕對路徑
+        String verificationLink = "http://localhost:8080/email/verify?token=" + token;
 
         try {
             // Thymeleaf Context
             Context context = new Context();
             Map<String, Object> variablesMap = new HashMap<>();
             variablesMap.put("username", user.getUsername());
-            variablesMap.put("token", token);
+            variablesMap.put("verificationLink", verificationLink);
             context.setVariables(variablesMap);
+
             String html = templateEngine.process("reset-password-email-template", context);
 
             MimeMessage mimeMessage = mailSender.createMimeMessage();
@@ -241,7 +253,11 @@ public class UserServiceImpl implements UserService {
             helper.setSubject("重設密碼連結");
             helper.setText(html, true);
 
-            ClassPathResource logo = new ClassPathResource("/static/images/verified.png");
+            ClassPathResource logo = new ClassPathResource("templates/images/verification_logo.png");
+            if (!logo.exists()) {
+                log.error("圖片檔案不存在: {}", logo.getPath());
+                throw new RuntimeException("無法載入內嵌圖片");
+            }
             helper.addInline("verification_logo", logo);
 
             mailSender.send(mimeMessage);
@@ -251,7 +267,6 @@ public class UserServiceImpl implements UserService {
             log.error("密碼重設信寄送失敗:{}", email, e);
             throw new RuntimeException("寄送失敗");
         }
-
 
     }
 }
