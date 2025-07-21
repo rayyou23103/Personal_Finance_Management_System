@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
@@ -72,7 +73,7 @@ public class UserController {
             log.info("信箱驗證成功");
             response.sendRedirect("/verify-success.html");
         } catch (IllegalArgumentException e) {
-            log.warn("信箱驗證失敗：", e.getMessage());
+            log.warn("信箱驗證失敗：{}", e.getMessage());
             response.sendRedirect("/verify-fail.html");
         }
     }
@@ -123,7 +124,6 @@ public class UserController {
     @GetMapping("/password/reset-confirm")
     public void resetConfirm(@RequestParam String token, HttpServletResponse response) throws IOException {
         try {
-            boolean result = userService.resetConfirm(token);
             if (!userService.resetConfirm(token)) {
                 response.sendRedirect("/password-reset.html?error=true");
                 return;
@@ -145,7 +145,7 @@ public class UserController {
             return ResponseEntity.ok(response);
         } catch (IllegalArgumentException e) {
             response.put("success", false);
-            log.warn("密碼重設失敗:{}", e);
+            log.warn("密碼重設失敗:{}", e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
         }
     }

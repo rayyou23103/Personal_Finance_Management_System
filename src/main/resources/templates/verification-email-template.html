@@ -46,7 +46,7 @@
 
     <p>感謝您註冊本系統，請點擊以下按鈕完成信箱驗證：</p>
 
-    <a class="btn" th:href="@{'/email/verify?token=' + ${token}}">
+    <a class="btn" th:href="${verificationLink}">
         驗證信箱
     </a>
 
