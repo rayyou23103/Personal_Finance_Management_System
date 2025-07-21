@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>會員登入 - 我的網站</title>
+    <link rel="stylesheet" href="../../../main/resources/templates/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="header.js"></script>
+</head>
+<body>
+    <header></header>
+
+    <main class="login-container">
+        <div class="login-form">
+            <h2>會員登入</h2>
+            <form action="/login" method="POST">
+                <div class="form-group">
+                    <label for="email">電子信箱</label>
+                    <input type="email" id="email" name="email" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">密碼</label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <button type="submit" class="submit-btn">登入</button>
+                <div class="form-footer">
+                    <a href="register.html" class="register-link">按此註冊</a>
+                    <a href="#" class="forgot-password">忘記密碼？</a>
+                </div>
+            </form>
+        </div>
+    </main>
+</body>
+</html> 
